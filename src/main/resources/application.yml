@@ -1,0 +1,18 @@
+spring:
+  application:
+    name: "calculator"
+
+  r2dbc:
+    url: r2dbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5433}/${POSTGRES_DB:calculator_db}
+    username: ${POSTGRES_USER:history_user}
+    password: ${POSTGRES_PASSWORD:history_pass}
+
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+
+rest-consumer:
+  percentage-service:
+    endpoint: ${LAMBDA_ENDPOINT_URL:https://bxnbq4uy6jhisd5mlnk7273zoi0jyfyr.lambda-url.us-east-1.on.aws}
+
