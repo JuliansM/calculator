@@ -6,99 +6,31 @@ Además registra el historial de llamadas exitosas y con error en una base de da
 Tecnologías principales:
 - Java 21
 - Spring WebFlux
-- PostgreSQL
-- Redis
+- Gradle v8.13
+- Postgres v15
+- Redis v7
 - Docker & Docker Compose
 - DockerHub (para publicación de imagen)
 
 ---
 
-## 🛠️ Levantar el proyecto localmente
+## Ejecutar Despliegue Localmente
 
-### 1. Clonar el repositorio
-
-```bash
-git clone https://github.com/JuliansM/calculator.git
-cd calculator
-```
-
-### 2. Construir el proyecto
-
-```
-./gradlew build
-```
-Se generará el .jar en la carpeta build/libs/.
-
-### 3. Configuración de la base de datos y caché
-El proyecto utiliza PostgreSQL y Redis levantados vía docker-compose.
-
-Archivo deploy/docker-compose.yml incluído:
-
-```
-services:
-
-  postgres:
-    image: postgres:15
-    container_name: postgres_history
-    restart: always
-    environment:
-      POSTGRES_USER: history_user
-      POSTGRES_PASSWORD: history_pass
-      POSTGRES_DB: calculator_db
-    ports:
-      - "5433:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
-
-  redis:
-    image: redis:7
-    container_name: redis_cache
-    restart: always
-    ports:
-      - "6379:6379"
-    volumes:
-      - redis_data:/data
-
-  app:
-    image: houssitcol2019/calculator_app:latest
-    container_name: spring_calculator_app
-    restart: always
-    ports:
-      - "8080:8080"
-    environment:
-      POSTGRES_HOST: postgres
-      POSTGRES_PORT: 5432
-      POSTGRES_DB: calculator_db
-      POSTGRES_USER: history_user
-      POSTGRES_PASSWORD: history_pass
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-      LAMBDA_ENDPOINT_URL: https://bxnbq4uy6jhisd5mlnk7273zoi0jyfyr.lambda-url.us-east-1.on.aws
-    depends_on:
-      - postgres
-      - redis
-
-volumes:
-  postgres_data:
-  redis_data:
-```
 #### Importante:
-
+- El archivo docker-compose.yml se encuentra en la ruta deploy/docker-compose.yml de este repositorio.
+  Es importante que comente dentro del archivo docker-compose.yml la sección de definición del contenedor de la app.
+  Esto, debido a que se pretende levantar el proyecto API localmente a modo de desarrollo.
 - Se incluye un script init.sql que crea la tabla call_histories automáticamente al levantar PostgreSQL.
 - PostgreSQL escucha en puerto 5433 para no colisionar si ya se tiene otro PostgreSQL local en 5432.
 
-### 4. Levantar contenedores
+#### Comando para levantar los contenedores
+Ubicado dentro del directorio deploy/ del proyecto, ejecutar el siguiente comando:
 ```
 docker-compose up -d
 ```
 Este comando iniciará los contenedores postgres, redis y además levantará el contenedor del proyecto a partir de la imagen publicada en dockerhub.
 
-Imagen de docker publicada:
-```
-houssitcol2019/calculator_app:latest
-```
-
+---
 ## 📈 Endpoints principales
 
 | Método |           Ruta           | Descripción                        |
@@ -116,136 +48,6 @@ Respuesta estándar:
 ```
 {
   "percentage": 0.75
-}
-```
-
-## Colección de postman para realizar pruebas de los servicios
-Archivo deploy/Tenpo_Calculator_Api.postman_collection.json incluído:
-```
-{
-	"info": {
-		"_postman_id": "33fb5f07-a76b-46a0-897e-2d40b88d8fef",
-		"name": "Tenpo_Calculator_Api",
-		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "8285597"
-	},
-	"item": [
-		{
-			"name": "calculate_success",
-			"request": {
-				"auth": {
-					"type": "noauth"
-				},
-				"method": "POST",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "{\r\n    \"num1\": 656,\r\n    \"num2\": 55\r\n}",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "http://localhost:8080/api/v1/calculate",
-					"protocol": "http",
-					"host": [
-						"localhost"
-					],
-					"port": "8080",
-					"path": [
-						"api",
-						"v1",
-						"calculate"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "get-call-history_success",
-			"request": {
-				"auth": {
-					"type": "noauth"
-				},
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "http://localhost:8080/api/v1/get-call-history",
-					"protocol": "http",
-					"host": [
-						"localhost"
-					],
-					"port": "8080",
-					"path": [
-						"api",
-						"v1",
-						"get-call-history"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "get_percentage_external_api_success",
-			"request": {
-				"auth": {
-					"type": "noauth"
-				},
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "https://bxnbq4uy6jhisd5mlnk7273zoi0jyfyr.lambda-url.us-east-1.on.aws/",
-					"protocol": "https",
-					"host": [
-						"bxnbq4uy6jhisd5mlnk7273zoi0jyfyr",
-						"lambda-url",
-						"us-east-1",
-						"on",
-						"aws"
-					],
-					"path": [
-						""
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "calculate_error_500",
-			"request": {
-				"auth": {
-					"type": "noauth"
-				},
-				"method": "POST",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "{\r\n    \"num1\": 656,\r\n    \"num2\": \"dd\"\r\n}",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "http://localhost:8080/api/v1/calculate",
-					"protocol": "http",
-					"host": [
-						"localhost"
-					],
-					"port": "8080",
-					"path": [
-						"api",
-						"v1",
-						"calculate"
-					]
-				}
-			},
-			"response": []
-		}
-	]
 }
 ```
 
@@ -274,11 +76,25 @@ Para correr tests:
 ./gradlew test
 ```
 
+- Código limpio siguiendo buenas prácticas de arquitectura reactiva.
+
+## 🧪 Pruebas de la aplicación y documentación
+
+- ### Colección de postman:
+El archivo de colección de postman se encuentra en la ruta deploy/Tenpo_Calculator_Api.postman_collection.json
+de este repositorio.
+
+- ### Documentación Swagger:
+La documentación de Swagger será accesible mediante la URL: http://localhost:8080/webjars/swagger-ui/index.html 
+una vez sea la aplicación levantada.
+
 ## 📎 Consideraciones extra
 - WebClient implementado con WebFlux reactive, manejo de errores y fallback adecuado.
 - Redis usado para cachear porcentaje consultado durante un tiempo configurable.
-- PostgreSQL crea call_histories automáticamente al inicializarse gracias al volumen init.sql.
-Archivo deploy/init.sql incluído:
+- PostgreSQL crea call_histories automáticamente al inicializarse gracias al volumen init.sql, este
+  archivo se encuentra en la ruta deploy/init.sql de este repositorio.
+
+Contenido del archivo:
 ```
 CREATE TABLE IF NOT EXISTS call_histories (
     id SERIAL PRIMARY KEY,
@@ -289,7 +105,3 @@ CREATE TABLE IF NOT EXISTS call_histories (
     error TEXT
 );
 ```
-- Código limpio siguiendo buenas prácticas de arquitectura reactiva.
-
-## ✨ Autor
-Desarrollado por: @Juliansm

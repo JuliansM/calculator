@@ -31,10 +31,10 @@ public class CalculationService {
         return callHistoryRepository.findAll()
                 .map(CallHistoryMapper::toDTO)
                 .collectList()
-                .flatMap(callHistoryDTOS -> Mono.just(StandardResponse.builder()
+                .map(callHistoryDTOS -> StandardResponse.builder()
                         .message(Constants.GET_HISTORY_SUCCESS_MESSAGE)
                         .data(callHistoryDTOS)
-                        .build()))
+                        .build())
                 .onErrorResume(throwable -> Mono.error(new TechnicalException(Constants.GET_HISTORY_ERROR_MESSAGE)))
                 .doOnError(throwable -> log.error(Constants.LOG_GETTING_HISTORY_ERROR, throwable.getMessage()));
     }

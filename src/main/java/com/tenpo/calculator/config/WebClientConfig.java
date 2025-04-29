@@ -12,8 +12,9 @@ public class WebClientConfig {
     private final PercentageServiceProperties percentageServiceProperties;
 
     @Bean
-    public WebClient.Builder webClientBuilder() {
+    public WebClient webClient() {
         return WebClient.builder()
-                .baseUrl(percentageServiceProperties.getEndpoint());
+                .baseUrl(percentageServiceProperties.getEndpoint())
+                .build();
     }
 }

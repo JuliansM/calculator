@@ -4,9 +4,6 @@ WORKDIR /app
 
 COPY gradlew build.gradle settings.gradle /app/
 COPY gradle /app/gradle
-
-RUN ./gradlew build -x test --no-daemon
-
 COPY src /app/src
 
 RUN ./gradlew bootJar -x test --no-daemon

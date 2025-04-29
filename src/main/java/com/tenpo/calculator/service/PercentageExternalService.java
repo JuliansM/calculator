@@ -20,7 +20,7 @@ import java.time.Duration;
 public class PercentageExternalService {
 
     private final ReactiveStringRedisTemplate reactiveRedisTemplate;
-    private final WebClient.Builder webClientBuilder;
+    private final WebClient webClient;
 
     public Mono<BigDecimal> getPercentage() {
 
@@ -32,7 +32,7 @@ public class PercentageExternalService {
     }
 
     private Mono<BigDecimal> fetchPercentageFromExternalService() {
-        return webClientBuilder.build()
+        return webClient
                 .get()
                 .retrieve()
                 .bodyToMono(PercentageResponse.class)
